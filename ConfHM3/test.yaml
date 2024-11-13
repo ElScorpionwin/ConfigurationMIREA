@@ -1,0 +1,21 @@
+constants:
+  - var port 8080;
+  - var max_connections 100;
+
+dictionaries:
+  - server:
+      host: localhost
+      port: 8080
+  - logging:
+      level: INFO
+      file: server.log
+  - database:
+      host: dbserver
+      port: 5432
+      user: dbuser
+  - another_server:
+      port: 8000
+      ssl: true
+
+
+
