@@ -2,8 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 
 from plantuml import PlantUML
-import io
-from PIL import Image
 
 def deps(name):
     url = "https://pkgs.alpinelinux.org" + name
@@ -21,7 +19,7 @@ def deps(name):
       href = a["href"]
       dest = href.split("/")[-1]
       array.append([source,dest])
-      #print(source + "  ->  " + dest)
+      print(source + "  ->  " + dest)
       array += deps(href)
     return array
 
@@ -33,14 +31,10 @@ def plantuml(deps):
   return text
 
 def getting_image(text):
-    url = "http://www.plantuml.com/plantuml/img/"
-    response = requests.post(url, data={'text': text})
-    image = Image.open(io.BytesIO(response.content))
-    print(image)
-    #image.show()
-    #image.save("diagram.png")
+    plantuml_url = "http://www.plantuml.com/plantuml/png/"
+    plantuml = PlantUML(url=plantuml_url)
+    image = plantuml.processes(text)
+    with open("diagram.png", "wb") as file:
+      file.write(image)
 
-#get_image("@startuml\nBob -> Alice : hello\n@enduml")
-
-#print(plantuml(deps("/package/edge/main/x86_64/busybox-binsh")))
-getting_image(plantuml(deps("/package/edge/main/x86_64/busybox-binsh")))
+getting_image(plantuml(deps("/package/edge/community/x86_64/networkmanager-dev")))
