@@ -1,0 +1,10 @@
+var port 8080;
+var max_connections 100;
+{'server': {'host': 'localhost', 'port': 8080, 'enabled': True, 'ssl': False}}
+{'logging': {'level': 'INFO', 'file': 'server.log', 'max_file_size': '10MB', 'backups': 3}}
+{'database': {'host': 'dbserver', 'port': 5432, 'user': 'dbuser', 'password': 'secret', 'ssl': True}}
+{'another_server': {'host': '192.168.1.1', 'port': '8000', 'ssl': True, 'timeout': 120}}
+# 8100
+# 90
+# 16160
+# 1

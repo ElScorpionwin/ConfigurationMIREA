@@ -1,21 +1,30 @@
 constants:
-  - var port 8080;
-  - var max_connections 100;
-
+  - var port 8080;   
+  - var max_connections 100; 
 dictionaries:
   - server:
       host: localhost
-      port: 8080
+      port: port  # Пример использования константы
+      enabled: true
+      ssl: false
   - logging:
       level: INFO
       file: server.log
+      max_file_size: 10MB
+      backups: 3
   - database:
       host: dbserver
       port: 5432
       user: dbuser
-  - another_server:
-      port: 8000
+      password: secret
       ssl: true
-
-
-
+  - another_server:
+      host: 192.168.1.1
+      port: "8000"  
+      ssl: true
+      timeout: 120 
+expressions:
+  - ["+", "port", 20]           # Использует значение порта 8080
+  - ["-", "max_connections", 10] # Использует значение максимальных подключений
+  - ["*", "port", 2]            # Умножает значение порта (8080 * 2)
+  - ["mod", 10, 3]              # Остаток от деления 10 на 3
