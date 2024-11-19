@@ -2,6 +2,10 @@ import yaml
 import re
 import math
 
+import yaml
+import re
+import math
+
 def replace_dict_values(dictionary, constants):
     """Замена значений в словаре константами."""
     for k, v in dictionary.items():
@@ -12,22 +16,60 @@ def replace_dict_values(dictionary, constants):
             match = re.match(r'#\{(\+|-|\*|/|mod|sqrt) (\w+) ?(\d+)?\}', v)
             if match:
                 operation, var, value = match.groups()
-                if var in constants:
-                    value = int(value)
+                original_value = constants.get(var, None)
+                
+                if original_value is not None:
+                    # Приводим value к типу int только если оно присутствует
+                    value = int(value) if value is not None else None
                     if operation == '+':
-                        dictionary[k] = constants[var] + value
+                        dictionary[k] = original_value + value if value is not None else original_value
                     elif operation == '-':
-                        dictionary[k] = constants[var] - value
+                        dictionary[k] = original_value - value if value is not None else original_value
                     elif operation == '*':
-                        dictionary[k] = constants[var] * value
+                        dictionary[k] = original_value * value if value is not None else original_value
                     elif operation == '/':
-                        dictionary[k] = constants[var] / value
+                        if value != 0:
+                            dictionary[k] = original_value / value
+                        else:
+                            dictionary[k] = original_value
                     elif operation == 'mod':
-                        dictionary[k] = abs(constants[var])
+                        dictionary[k] = original_value % value if value is not None else original_value
                     elif operation == 'sqrt':
-                        dictionary[k] = math.sqrt(constants[var])
+                        dictionary[k] = math.sqrt(original_value)
             elif v in constants:
                 dictionary[k] = constants[v]  # Замена на значение из констант
+
+def process_yaml(yaml_path, output_path):
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+        data = yaml.safe_load(file)
+
+    constants = {}
+    # Обработка констант
+    for constant in data.get('constants', []):
+        match = re.match(r'var (\w+) (\d+);', constant.strip())
+        if match:
+            name, value = match.groups()
+            constants[name] = int(value)
+
+    dictionaries = data.get('dictionaries', [])
+    # Замена значений в словарях
+    for dictionary in dictionaries:
+        replace_dict_values(dictionary, constants)
+
+    results = []
+
+    # Запись результата в файл
+    with open(output_path, 'w', encoding='utf-8') as output_file:
+        # Запись словарей
+        output_file.write("[\n")
+        for dictionary in dictionaries:
+            for key, value in dictionary.items():
+                output_file.write(f"    {key}:\n")
+                for k, val in value.items():
+                    output_file.write(f"        {k} => {val}\n")
+                    
+        output_file.write("]\n")
+
 
 def process_yaml(yaml_path, output_path):
     with open(yaml_path, 'r', encoding='utf-8') as file:
