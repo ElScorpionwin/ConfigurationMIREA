@@ -4,7 +4,7 @@ constants:
 dictionaries:
   - server:
       host: localhost
-      port: port  # Пример использования константы
+      port: "#{sqrt port 2}"
       enabled: true
       ssl: false
   - logging:
@@ -14,17 +14,13 @@ dictionaries:
       backups: 3
   - database:
       host: dbserver
-      port: 5432
+      port: "#{- port 432}"
       user: dbuser
       password: secret
       ssl: true
   - another_server:
       host: 192.168.1.1
-      port: "8000"  
+      port: "#{+ port 25}"  
+      max_connections: "#{* max_connections 3}"
       ssl: true
       timeout: 120 
-expressions:
-  - ["+", "port", 20]           # Использует значение порта 8080
-  - ["-", "max_connections", 10] # Использует значение максимальных подключений
-  - ["*", "port", 2]            # Умножает значение порта (8080 * 2)
-  - ["mod", 10, 3]              # Остаток от деления 10 на 3

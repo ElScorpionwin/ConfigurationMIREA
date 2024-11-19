@@ -1,40 +1,36 @@
 import yaml
 import re
-
-def evaluate_expression(expr, constants):
-    """Evaluate a constant expression in prefix form."""
-    if isinstance(expr, list):
-        operator = expr[0]
-        if operator == '+':
-            return evaluate_expression(expr[1], constants) + evaluate_expression(expr[2], constants)
-        elif operator == '-':
-            return evaluate_expression(expr[1], constants) - evaluate_expression(expr[2], constants)
-        elif operator == '*':
-            return evaluate_expression(expr[1], constants) * evaluate_expression(expr[2], constants)
-        elif operator == '/':
-            return evaluate_expression(expr[1], constants) / evaluate_expression(expr[2], constants)
-        elif operator == 'mod':
-            return evaluate_expression(expr[1], constants) % evaluate_expression(expr[2], constants)
-        elif operator == 'sqrt':
-            return evaluate_expression(expr[1], constants) ** 0.5
-    elif isinstance(expr, str):
-        if expr in constants:
-            return constants[expr]
-        else:
-            return expr  # Вернуть строку, если она не является константой
-    else:
-        return expr
+import math
 
 def replace_dict_values(dictionary, constants):
     """Замена значений в словаре константами."""
     for k, v in dictionary.items():
         if isinstance(v, dict):
             replace_dict_values(v, constants)  # Рекурсивный вызов
-        elif isinstance(v, str) and v in constants:
-            dictionary[k] = constants[v]
+        elif isinstance(v, str):
+            # Обработка для регулярных выражений
+            match = re.match(r'#\{(\+|-|\*|/|mod|sqrt) (\w+) ?(\d+)?\}', v)
+            if match:
+                operation, var, value = match.groups()
+                if var in constants:
+                    value = int(value)
+                    if operation == '+':
+                        dictionary[k] = constants[var] + value
+                    elif operation == '-':
+                        dictionary[k] = constants[var] - value
+                    elif operation == '*':
+                        dictionary[k] = constants[var] * value
+                    elif operation == '/':
+                        dictionary[k] = constants[var] / value
+                    elif operation == 'mod':
+                        dictionary[k] = abs(constants[var])
+                    elif operation == 'sqrt':
+                        dictionary[k] = math.sqrt(constants[var])
+            elif v in constants:
+                dictionary[k] = constants[v]  # Замена на значение из констант
 
 def process_yaml(yaml_path, output_path):
-    with open(yaml_path, 'r', encoding='utf-8') as file:  # Убедитесь, что используем правильную кодировку
+    with open(yaml_path, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)
 
     constants = {}
@@ -50,19 +46,21 @@ def process_yaml(yaml_path, output_path):
     for dictionary in dictionaries:
         replace_dict_values(dictionary, constants)
 
-    expressions = data.get('expressions', [])
     results = []
-    # Вычисление выражений
-    for expr in expressions:
-        result = evaluate_expression(expr, constants)
-        results.append(result)
 
     # Запись результата в файл
     with open(output_path, 'w', encoding='utf-8') as output_file:
-        for name, value in constants.items():
-            output_file.write(f"var {name} {value};\n")
-        for dictionary in dictionaries:
-            output_file.write(f"{dictionary}\n")
+        # Запись словарей
+        output_file.write("[\n")
+        for i, dictionary in enumerate(dictionaries):
+            for key, value in dictionary.items():
+                output_file.write(f"    {key}:\n")
+                for k,val in value.items():
+                    output_file.write(f"        {k} => {val}\n")
+                    
+        output_file.write("]\n")
+        
+        # Запись выражений
         for result in results:
             output_file.write(f"# {result}\n")
 
