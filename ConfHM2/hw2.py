@@ -30,11 +30,23 @@ def plantuml(deps):
   text += "@enduml"
   return text
 
-def getting_image(text):
-    plantuml_url = "http://www.plantuml.com/plantuml/png/"
+def getting_image(text,outputpath,path):
+    plantuml_url = path
     plantuml = PlantUML(url=plantuml_url)
     image = plantuml.processes(text)
-    with open("diagram.png", "wb") as file:
+    with open(outputpath, "wb") as file:
       file.write(image)
 
-getting_image(plantuml(deps("/package/edge/community/x86_64/networkmanager-dev")))
+with open("config.xml", encoding = "UTF-8") as f:
+  line = f.read()
+  line = line.splitlines()
+  for name in line:
+    if(name.startswith('path = ')):
+      path = name.replace("path = ", "", 1)
+    elif(name.startswith('OutputPath = ')):
+       OutputPath = name.replace("OutputPath = ", "", 1)
+    elif(name.startswith('package = ')):
+       pack = name.replace("package = ", "", 1)
+
+
+getting_image(plantuml(deps(pack)),OutputPath, path)
