@@ -1,73 +1,63 @@
 import unittest
-from unittest.mock import patch, mock_open
+import os
 import yaml
-import math
-
-# Импортируйте функции из вашего основного файла hw2.py
-from hw_3 import replace_dict_values, process_yaml
-
-class TestYamlProcessing(unittest.TestCase):
-
-    def test_replace_dict_values_with_constants(self):
-        constants = {
-            'port': 8080,
-            'max_connections': 100
-        }
-        
-        dictionary = {
-            'server': {
-                'host': 'localhost',
-                'port': 'port',  
-                'max_connections': '#{+ max_connections 10}',  
-                'ssl': True
-            }
-        }
-        
-        replace_dict_values(dictionary, constants)
-        
-        self.assertEqual(dictionary['server']['port'], 8080)
-        self.assertEqual(dictionary['server']['max_connections'], 110)
-
-    def test_replace_dict_values_with_sqrt(self):
-        constants = {
-            'value': 16
-        }
-        
-        dictionary = {
-            'math_operations': {
-                'sqrt_value': '#{sqrt value}',
-            }
-        }
-        
-        replace_dict_values(dictionary, constants)
-        
-        self.assertEqual(dictionary['math_operations']['sqrt_value'], 4.0)  # Проверяем что возвращается 4.0
+from hw_3 import process_yaml
 
 
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('yaml.safe_load', return_value={
-        'constants': ['var port 8080;', 'var max_connections 100;'],
+def create_test_yaml(file_path):
+    """Создать тестовый yaml-файл."""
+    data = {
+        'constants': [
+            'var a 10;',
+            'var b 20;'
+        ],
         'dictionaries': [
             {
-                'server': {
-                    'host': 'localhost',
-                    'port': 'port',  # ожидаем заменить на 8080
-                    'ssl': True
+                'dict1': {
+                    'value1': '#{+ a 5}',
+                    'value2': '#{sqrt a}',
+                    'value3': '#{* a b}'
                 }
             }
         ]
-    })
-    def test_process_yaml(self, mock_yaml_load, mock_open_func):
-        process_yaml('test.yaml', 'output.txt')
-        
-        # Проверяем, что файл output.txt открывается в режиме записи
-        mock_open_func.assert_any_call('output.txt', 'w', encoding='utf-8')
+    }
 
-        # Проверяем, что файл test.yaml открывается в режиме чтения
-        # Это отдельная ассерция, а не assert_called_once_with
-        mock_open_func.assert_any_call('test.yaml', 'r', encoding='utf-8')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        yaml.dump(data, f)
 
-        # Проверяем, что write вызывается с нужными аргументами
-        handle = mock_open_func()
-if __name__ == "__main__":
+class TestYamlProcessing(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.test_yaml_file = 'testing.yaml'
+        cls.output_file = 'output_test.txt'
+        create_test_yaml(cls.test_yaml_file)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.remove(cls.test_yaml_file)
+        if os.path.exists(cls.output_file):
+            os.remove(cls.output_file)
+
+    def test_yaml_processing(self):
+        process_yaml(self.test_yaml_file, self.output_file)
+
+        # Проверяем наличие результирующего файла
+        self.assertTrue(os.path.exists(self.output_file))
+
+        # Проверяем содержимое выходного файла
+        with open(self.output_file, 'r', encoding='utf-8') as f:
+            output_content = f.read()
+
+        expected_content = (
+            "[\n"
+            "    dict1:\n"
+            "        value1 => 10\n"
+            "        value2 => 3.1622776601683795\n"
+            "        value3 => 200\n"
+            "]\n"
+        )
+        self.assertEqual(output_content.strip(), expected_content.strip())
+
+if __name__ == '__main__':
     unittest.main()
