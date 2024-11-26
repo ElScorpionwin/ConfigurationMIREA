@@ -1,24 +1,28 @@
 [
-    server:
+    server => [
         host => localhost
         port => 89.88882021697692
         enabled => True
         ssl => False
-    logging:
+    ]
+    logging => [
         level => INFO
         file => server.log
         max_file_size => 10MB
         backups => 3
-    database:
+    ]
+    database => [
         host => dbserver
         port => 8080
         user => dbuser
         password => secret
         ssl => True
-    another_server:
+    ]
+    another_server => [
         host => 192.168.1.1
         port => 8080
         max_connections => 100
         ssl => True
         timeout => 120
+    ]
 ]

@@ -51,10 +51,11 @@ class TestYamlProcessing(unittest.TestCase):
 
         expected_content = (
             "[\n"
-            "    dict1:\n"
+            "    dict1 => [\n"
             "        value1 => 10\n"
             "        value2 => 3.1622776601683795\n"
             "        value3 => 200\n"
+            "    ]\n"
             "]\n"
         )
         self.assertEqual(output_content.strip(), expected_content.strip())

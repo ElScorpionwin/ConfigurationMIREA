@@ -51,9 +51,10 @@ def process_yaml(yaml_path, output_path):
         output_file.write("[\n")
         for dictionary in dictionaries:
             for key, value in dictionary.items():
-                output_file.write(f"    {key}:\n")
+                output_file.write(f"    {key} => [\n")
                 for k, val in value.items():
                     output_file.write(f"        {k} => {val}\n")
+                output_file.write("    ]\n")
         output_file.write("]\n")
 
 # Пример использования функции
